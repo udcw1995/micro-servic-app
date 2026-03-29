@@ -107,6 +107,20 @@ services:
     networks:
       - backend-net
 
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: frontend
+    ports:
+      - "80:80"
+    depends_on:
+      - user-service
+      - auth-service
+    restart: unless-stopped
+    networks:
+      - backend-net
+
 # ── Volumes & Networks ────────────────────────────────────────────────────────
 
 volumes:
