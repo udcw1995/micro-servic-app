@@ -4,7 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "npx sequelize-cli db:migrate && node index.js",
+    "start": "npx sequelize-cli db:migrate && npx sequelize-cli db:seed:all && node index.js",
     "dev": "node --watch index.js",
     "test": "jest"
   },
