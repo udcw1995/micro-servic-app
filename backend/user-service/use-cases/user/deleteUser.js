@@ -1,6 +1,7 @@
 'use strict';
 
 const userRepository = require('../../repositories/user/UserRepository');
+const AuthServiceClient = require('../../services/AuthServiceClient');
 
 async function deleteUser(id) {
   const deleted = await userRepository.delete(id);
@@ -9,6 +10,13 @@ async function deleteUser(id) {
     error.statusCode = 404;
     throw error;
   }
+
+  try {
+    await AuthServiceClient.notifyUserDeleted(id);
+  } catch (err) {
+    console.error('Failed to notify auth-service of user deletion:', err.message);
+  }
+
   return { message: 'User deleted successfully' };
 }
 

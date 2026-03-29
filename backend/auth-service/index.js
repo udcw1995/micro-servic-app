@@ -5,6 +5,7 @@ require('dotenv').config();
 const express = require('express');
 const { sequelize } = require('./config/database');
 const { connect: connectRabbitMQ } = require('./config/rabbitmq');
+const { startListening: startEventListener } = require('./services/UserEventHandler');
 const authRoutes = require('./routes/authRoutes');
 
 const app = express();
@@ -29,6 +30,7 @@ async function start() {
   console.log('Auth service database connected');
 
   await connectRabbitMQ();
+  await startEventListener();
 
   app.listen(PORT, () => {
     console.log(`Auth service running on port ${PORT}`);
