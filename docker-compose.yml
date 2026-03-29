@@ -1,0 +1,118 @@
+services:
+
+  # ── Infrastructure ──────────────────────────────────────────────────────────
+
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: rabbitmq
+    ports:
+      - "5672:5672"       # AMQP
+      - "15672:15672"     # Management UI  (guest / guest)
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+
+  user-service-db:
+    image: postgres:16-alpine
+    container_name: user-service-db
+    environment:
+      POSTGRES_DB: user_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${USER_DB_PASSWORD:-postgres}
+    volumes:
+      - user-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+
+  auth-service-db:
+    image: postgres:16-alpine
+    container_name: auth-service-db
+    environment:
+      POSTGRES_DB: auth_service_db
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: ${AUTH_DB_PASSWORD:-postgres}
+    volumes:
+      - auth-db-data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - backend-net
+
+  # ── Services ─────────────────────────────────────────────────────────────────
+
+  user-service:
+    build:
+      context: ./backend/user-service
+      dockerfile: Dockerfile
+    container_name: user-service
+    ports:
+      - "3000:3000"
+    environment:
+      PORT: 3000
+      DB_HOST: user-service-db
+      DB_PORT: 5432
+      DB_NAME: user_service_db
+      DB_USER: postgres
+      DB_PASSWORD: ${USER_DB_PASSWORD:-postgres}
+      RABBITMQ_URL: amqp://rabbitmq
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access}
+    depends_on:
+      user-service-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+    restart: unless-stopped
+    networks:
+      - backend-net
+
+  auth-service:
+    build:
+      context: ./backend/auth-service
+      dockerfile: Dockerfile
+    container_name: auth-service
+    ports:
+      - "3001:3001"
+    environment:
+      PORT: 3001
+      DB_HOST: auth-service-db
+      DB_PORT: 5432
+      DB_NAME: auth_service_db
+      DB_USER: postgres
+      DB_PASSWORD: ${AUTH_DB_PASSWORD:-postgres}
+      RABBITMQ_URL: amqp://rabbitmq
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change_me_refresh}
+      JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+    depends_on:
+      auth-service-db:
+        condition: service_healthy
+      rabbitmq:
+        condition: service_healthy
+      user-service:
+        condition: service_started
+    restart: unless-stopped
+    networks:
+      - backend-net
+
+# ── Volumes & Networks ────────────────────────────────────────────────────────
+
+volumes:
+  user-db-data:
+  auth-db-data:
+
+networks:
+  backend-net:
+    driver: bridge

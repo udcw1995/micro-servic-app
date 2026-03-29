@@ -1,0 +1,10 @@
+### Register a new user (auth-service — creates user profile + credentials)
+POST http://localhost:3001/api/auth/register
+Content-Type: application/json
+
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "password": "secret123"
+}

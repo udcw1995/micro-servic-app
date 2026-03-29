@@ -1,0 +1,4 @@
+### Delete user by ID (requires login)
+DELETE http://localhost:3000/api/users/<user-id-here>
+Content-Type: application/json
+Authorization: Bearer <your-access-token-here>

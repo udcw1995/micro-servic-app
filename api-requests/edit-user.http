@@ -1,0 +1,10 @@
+### Update user by ID (requires login)
+PUT http://localhost:3000/api/users/<user-id-here>
+Content-Type: application/json
+Authorization: Bearer <your-access-token-here>
+
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane.smith@example.com"
+}

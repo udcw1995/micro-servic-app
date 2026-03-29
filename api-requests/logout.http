@@ -1,0 +1,11 @@
+### Get all users (requires login)
+GET http://localhost:3000/api/users
+Content-Type: application/json
+Authorization: Bearer <your-access-token-here>
+
+###
+
+### Get user by ID (requires login)
+GET http://localhost:3000/api/users/<user-id-here>
+Content-Type: application/json
+Authorization: Bearer <your-access-token-here>
