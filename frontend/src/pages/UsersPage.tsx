@@ -112,7 +112,7 @@ export default function UsersPage() {
                           <span className="ml-2 text-xs font-normal text-muted-foreground">(you)</span>
                         )}
                       </CardTitle>
-                      <p className="text-xs text-muted-foreground truncate max-w-[180px]">{u.email}</p>
+                      <p className="text-xs text-muted-foreground truncate max-w-45">{u.email}</p>
                     </div>
                   </div>
                 </div>

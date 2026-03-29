@@ -20,8 +20,6 @@ interface State {
   toasts: ToasterToast[]
 }
 
-const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
-
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'ADD_TOAST':
