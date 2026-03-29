@@ -26,8 +26,7 @@ app.use((err, _req, res, _next) => {
 
 async function start() {
   await sequelize.authenticate();
-  await sequelize.sync({ alter: true });
-  console.log('Auth service database connected and synced');
+  console.log('Auth service database connected');
 
   await connectRabbitMQ();
 

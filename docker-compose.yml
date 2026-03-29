@@ -60,6 +60,7 @@ services:
     ports:
       - "3000:3000"
     environment:
+      NODE_ENV: production
       PORT: 3000
       DB_HOST: user-service-db
       DB_PORT: 5432
@@ -85,6 +86,7 @@ services:
     ports:
       - "3001:3001"
     environment:
+      NODE_ENV: production
       PORT: 3001
       DB_HOST: auth-service-db
       DB_PORT: 5432
