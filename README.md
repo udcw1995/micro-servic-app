@@ -1,37 +1,377 @@
 # User Management Microservices
 
-A Node.js microservices project with a **user-service** and an **auth-service**, connected via **RabbitMQ** and orchestrated with **Docker Compose**.
+A full-stack microservices project with a **React frontend**, a **user-service**, and an **auth-service**, connected via **RabbitMQ** and orchestrated with **Docker Compose**.
 
 ---
 
 ## Architecture
 
 ```
-┌─────────────────────────────────────────────────────────┐
-│                      Client (HTTP)                      │
-└────────────┬───────────────────────┬────────────────────┘
-             │                       │
-             ▼                       ▼
-   ┌─────────────────┐     ┌─────────────────┐
-   │   auth-service  │     │   user-service  │
-   │   (port 3001)   │     │   (port 3000)   │
-   └────────┬────────┘     └────────┬────────┘
-            │  RabbitMQ RPC         │
-            │  (user_service_rpc)   │
-            └──────────────────────►│
-                                    │
-   ┌─────────────────┐     ┌────────┴────────┐
-   │ auth-service-db │     │ user-service-db │
-   │ (PostgreSQL)    │     │ (PostgreSQL)    │
-   └─────────────────┘     └─────────────────┘
-                    └─────────────────┘
-                         RabbitMQ
+┌──────────────────────────────────────────────────────────────┐
+│                    Browser (http://localhost:8080)            │
+│                          React + shadcn/ui                   │
+└───────────────────────────────┬──────────────────────────────┘
+                                │ nginx reverse proxy
+                    ┌───────────┴───────────┐
+                    │                       │
+                    ▼                       ▼
+         ┌─────────────────┐     ┌─────────────────┐
+         │   auth-service  │     │   user-service  │
+         │   (port 3001)   │     │   (port 3000)   │
+         └────────┬────────┘     └────────┬────────┘
+                  │  RabbitMQ RPC         │
+                  │  (user_service_rpc)   │
+                  └──────────────────────►│
+                                          │
+         ┌─────────────────┐     ┌────────┴────────┐
+         │ auth-service-db │     │ user-service-db │
+         │ (PostgreSQL)    │     │ (PostgreSQL)    │
+         └─────────────────┘     └─────────────────┘
+                          └──────────────┘
+                               RabbitMQ
 ```
 
+- **Frontend** (React + Tailwind + shadcn/ui) served by nginx, which reverse-proxies API calls to the backend services.
 - **auth-service** owns authentication: registration, login, JWT issuance.
 - **user-service** owns user profiles and exposes a protected REST API.
 - The two services **never call each other over HTTP**. All cross-service communication goes through a RabbitMQ **RPC queue** (`user_service_rpc`).
 - Each service has its **own isolated PostgreSQL database**.
+
+---
+
+## Project Structure
+
+```
+Project/
+├── docker-compose.yml
+├── .env.example                      # Root secrets for Docker Compose
+├── .gitignore
+├── README.md
+├── api-requests/                     # VS Code REST Client request files
+│   ├── create-user.http
+│   ├── login.http
+│   ├── logout.http
+│   ├── edit-user.http
+│   └── delete-user.http
+├── frontend/                         # React + Vite + TypeScript
+│   ├── src/
+│   │   ├── api/index.ts              # Axios instances + authService/userService
+│   │   ├── components/ui/            # shadcn/ui components
+│   │   ├── context/
+│   │   │   ├── AuthContext.tsx       # Auth state + hooks
+│   │   │   └── use-toast.ts          # Toast state manager
+│   │   ├── layouts/AppLayout.tsx     # Protected layout with navbar
+│   │   ├── pages/
+│   │   │   ├── LoginPage.tsx
+│   │   │   ├── RegisterPage.tsx
+│   │   │   └── UsersPage.tsx         # Full CRUD UI
+│   │   └── App.tsx                   # React Router routes
+│   ├── nginx.conf                    # nginx reverse proxy config
+│   └── Dockerfile
+└── backend/
+    ├── auth-service/
+    │   ├── __tests__/
+    │   │   └── use-cases/            # Jest unit tests
+    │   ├── config/
+    │   │   ├── database.js
+    │   │   └── rabbitmq.js
+    │   ├── entities/Credential.js
+    │   ├── models/CredentialModel.js
+    │   ├── services/
+    │   │   ├── CredentialRepository.js
+    │   │   └── UserServiceClient.js  # RabbitMQ RPC client
+    │   ├── use-cases/
+    │   │   ├── register.js
+    │   │   ├── login.js
+    │   │   └── refreshToken.js
+    │   ├── controllers/AuthController.js
+    │   ├── routes/authRoutes.js
+    │   ├── Dockerfile
+    │   ├── .env.example
+    │   └── index.js
+    └── user-service/
+        ├── __tests__/
+        │   ├── entities/             # Jest unit tests
+        │   ├── middleware/
+        │   └── use-cases/
+        ├── config/database.js
+        ├── entities/User.js
+        ├── models/UserModel.js
+        ├── services/
+        │   ├── UserRepository.js
+        │   ├── rabbitmq.js
+        │   └── UserMessageHandler.js # Listens on user_service_rpc queue
+        ├── middleware/authenticate.js # JWT verification middleware
+        ├── use-cases/
+        │   ├── createUser.js
+        │   ├── getUserById.js
+        │   ├── getAllUsers.js
+        │   ├── updateUser.js
+        │   └── deleteUser.js
+        ├── controllers/UserController.js
+        ├── routes/userRoutes.js
+        ├── Dockerfile
+        ├── .env.example
+        └── index.js
+```
+
+---
+
+## Prerequisites
+
+- [Docker](https://docs.docker.com/get-docker/) and Docker Compose v2
+- (Optional, for local dev) Node.js 22+, PostgreSQL, RabbitMQ
+
+---
+
+## Getting Started
+
+### 1. Clone and configure environment
+
+```bash
+git clone <repo-url>
+cd Project
+
+cp .env.example .env   # then fill in your secrets
+```
+
+| Variable | Description |
+|---|---|
+| `USER_DB_PASSWORD` | Password for the user-service PostgreSQL instance |
+| `AUTH_DB_PASSWORD` | Password for the auth-service PostgreSQL instance |
+| `JWT_ACCESS_SECRET` | Secret used to sign/verify access tokens |
+| `JWT_REFRESH_SECRET` | Secret used to sign/verify refresh tokens |
+| `JWT_ACCESS_EXPIRES_IN` | Access token lifetime (default `15m`) |
+| `JWT_REFRESH_EXPIRES_IN` | Refresh token lifetime (default `7d`) |
+
+### 2. Build and run
+
+```bash
+docker compose up --build
+```
+
+| Container | Port | Description |
+|---|---|---|
+| `frontend` | 8080 | React app served by nginx |
+| `user-service` | 3000 | User profile REST API |
+| `auth-service` | 3001 | Authentication REST API |
+| `rabbitmq` | 5672 / 15672 | AMQP + Management UI (guest/guest) |
+| `user-service-db` | — | PostgreSQL for user-service (internal) |
+| `auth-service-db` | — | PostgreSQL for auth-service (internal) |
+
+> Open **http://localhost:8080** in your browser to use the frontend.  
+> Tables are created automatically via Sequelize `sync({ alter: true })` on startup.
+
+### 3. Stop
+
+```bash
+docker compose down          # stop containers
+docker compose down -v       # stop and remove volumes (wipes databases)
+```
+
+---
+
+## API Reference
+
+### Auth Service — `http://localhost:3001`
+
+#### `POST /api/auth/register`
+Register a new account. Creates the user profile (via RabbitMQ) and stores hashed credentials.
+
+**Request**
+```json
+{
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com",
+  "password": "secret123"
+}
+```
+
+**Response `201`**
+```json
+{
+  "id": "uuid",
+  "firstName": "John",
+  "lastName": "Doe",
+  "email": "john.doe@example.com"
+}
+```
+
+---
+
+#### `POST /api/auth/login`
+Login and receive JWT tokens.
+
+**Request**
+```json
+{
+  "email": "john.doe@example.com",
+  "password": "secret123"
+}
+```
+
+**Response `200`**
+```json
+{
+  "user": { "id": "uuid", "firstName": "John", "lastName": "Doe", "email": "john.doe@example.com" },
+  "accessToken": "<jwt>",
+  "refreshToken": "<jwt>"
+}
+```
+
+---
+
+#### `POST /api/auth/refresh`
+Exchange a refresh token for a new access token.
+
+**Request**
+```json
+{ "token": "<refresh-token>" }
+```
+
+**Response `200`**
+```json
+{ "accessToken": "<new-jwt>" }
+```
+
+---
+
+### User Service — `http://localhost:3000`
+
+All routes except `POST /` require a valid access token:
+
+```
+Authorization: Bearer <accessToken>
+```
+
+| Method | Endpoint | Auth | Description |
+|---|---|---|---|
+| `POST` | `/api/users` | — | Create user (used internally via RabbitMQ) |
+| `GET` | `/api/users` | Required | Get all users |
+| `GET` | `/api/users/:id` | Required | Get user by UUID |
+| `PUT` | `/api/users/:id` | Required | Update user fields |
+| `DELETE` | `/api/users/:id` | Required | Delete user |
+
+#### `PUT /api/users/:id` — Request body (all fields optional)
+```json
+{
+  "firstName": "Jane",
+  "lastName": "Smith",
+  "email": "jane.smith@example.com"
+}
+```
+
+#### `GET /health`
+Health check — no auth required, returns `{ "status": "ok" }`.
+
+---
+
+## RabbitMQ Communication
+
+The auth-service sends RPC messages to the `user_service_rpc` queue. Each message has an `action` and a `payload`:
+
+| Action | Payload | Description |
+|---|---|---|
+| `CREATE` | `{ firstName, lastName, email }` | Create a new user profile |
+| `FIND_BY_EMAIL` | `{ email }` | Look up user by email |
+| `FIND_BY_ID` | `{ id }` | Look up user by UUID |
+
+RPC replies use exclusive per-request queues with a `correlationId`, with a 10 s timeout.
+
+---
+
+## Testing
+
+Unit tests are written with [Jest](https://jestjs.io/) and run without any external dependencies (database, RabbitMQ, etc.) — all infrastructure is mocked.
+
+```bash
+# user-service (32 tests across 7 suites)
+cd backend/user-service && npm test
+
+# auth-service (17 tests across 3 suites)
+cd backend/auth-service && npm test
+
+# Run both from the project root
+npm test --prefix backend/user-service && npm test --prefix backend/auth-service
+```
+
+### What is tested
+
+**user-service**
+| Suite | Description |
+|---|---|
+| `entities/User` | `validate()` — all valid and invalid field combinations |
+| `use-cases/createUser` | Duplicate email, validation errors, happy path |
+| `use-cases/getUserById` | Found / not found |
+| `use-cases/getAllUsers` | Full list / empty list |
+| `use-cases/updateUser` | Field update, 404, email conflict, same-email no-op, validation |
+| `use-cases/deleteUser` | Success / 404 |
+| `middleware/authenticate` | Valid token, missing header, wrong scheme, invalid/expired token |
+
+**auth-service**
+| Suite | Description |
+|---|---|
+| `use-cases/register` | Happy path, duplicate email, all validation branches |
+| `use-cases/login` | Valid credentials, wrong email, wrong password, missing fields |
+| `use-cases/refreshToken` | Valid token, missing, expired, invalid signature |
+
+---
+
+## Local Development (without Docker)
+
+```bash
+# Terminal 1 — user-service
+cd backend/user-service
+cp .env.example .env   # edit DB and RabbitMQ settings
+npm install
+npm run dev            # uses node --watch
+
+# Terminal 2 — auth-service
+cd backend/auth-service
+cp .env.example .env
+npm install
+npm run dev
+
+# Terminal 3 — frontend
+cd frontend
+npm install
+npm run dev            # Vite dev server on http://localhost:5173
+```
+
+Make sure PostgreSQL and RabbitMQ are running locally and the `.env` values point to them.
+
+---
+
+## API Request Files
+
+The `api-requests/` folder contains `.http` files for the [VS Code REST Client](https://marketplace.visualstudio.com/items?itemName=humao.rest-client) extension.
+
+| File | Requests |
+|---|---|
+| `create-user.http` | `POST /api/auth/register` |
+| `login.http` | `POST /api/auth/login`, `POST /api/auth/refresh` |
+| `logout.http` | `GET /api/users`, `GET /api/users/:id` |
+| `edit-user.http` | `PUT /api/users/:id` |
+| `delete-user.http` | `DELETE /api/users/:id` |
+
+Replace `<your-access-token-here>` with the `accessToken` returned from the login request, and `<user-id-here>` with the user's UUID.
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|---|---|
+| Frontend | React 19, Vite, TypeScript, Tailwind CSS v4, shadcn/ui, axios |
+| Runtime | Node.js 22 |
+| Framework | Express 5 |
+| ORM | Sequelize 6 |
+| Database | PostgreSQL 16 |
+| Messaging | RabbitMQ 3.13 (AMQP via amqplib) |
+| Auth | JSON Web Tokens (jsonwebtoken), bcryptjs |
+| Testing | Jest |
+| Containers | Docker, Docker Compose v2, nginx |
 
 ---
 
