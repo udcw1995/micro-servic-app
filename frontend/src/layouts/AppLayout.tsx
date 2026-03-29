@@ -1,25 +1,47 @@
-import { Navigate, Outlet } from 'react-router-dom'
+import { NavLink, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
-import { LogOut, Users } from 'lucide-react'
+import { cn } from '@/lib/utils'
+import { LogOut, Shield, Users } from 'lucide-react'
 
 export default function AppLayout() {
-  const { isAuthenticated, user, logout } = useAuth()
+  const { isAuthenticated, user, logout, isAdmin } = useAuth()
 
   if (!isAuthenticated) return <Navigate to="/login" replace />
+
+  const navLink = ({ isActive }: { isActive: boolean }) =>
+    cn('flex items-center gap-1.5 text-sm font-medium transition-colors',
+      isActive ? 'text-foreground' : 'text-muted-foreground hover:text-foreground')
 
   return (
     <div className="min-h-screen flex flex-col">
       {/* Navbar */}
       <header className="border-b bg-background sticky top-0 z-30">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2 font-semibold text-lg">
-            <Users className="h-5 w-5 text-primary" />
-            UserManager
+          <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 font-semibold text-lg">
+              <Users className="h-5 w-5 text-primary" />
+              UserManager
+            </div>
+            <nav className="flex items-center gap-5">
+              <NavLink to="/users" className={navLink}>
+                <Users className="h-4 w-4" />
+                <span className="hidden sm:inline">Users</span>
+              </NavLink>
+              {isAdmin && (
+                <NavLink to="/roles" className={navLink}>
+                  <Shield className="h-4 w-4" />
+                  <span className="hidden sm:inline">Roles</span>
+                </NavLink>
+              )}
+            </nav>
           </div>
           <div className="flex items-center gap-3">
             <span className="text-sm text-muted-foreground hidden sm:block">
               {user?.firstName} {user?.lastName}
+              {user?.role && (
+                <span className="ml-1 text-xs opacity-60">({user.role.name})</span>
+              )}
             </span>
             <Button variant="ghost" size="sm" onClick={logout}>
               <LogOut className="h-4 w-4 mr-1" />

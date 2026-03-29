@@ -3,7 +3,7 @@
 const User = require('../../entities/user/User');
 const userRepository = require('../../repositories/user/UserRepository');
 
-async function updateUser(id, { firstName, lastName, email }) {
+async function updateUser(id, { firstName, lastName, email, roleId }) {
   const existing = await userRepository.findById(id);
   if (!existing) {
     const error = new Error('User not found');
@@ -15,6 +15,7 @@ async function updateUser(id, { firstName, lastName, email }) {
   if (firstName !== undefined) updates.firstName = firstName;
   if (lastName !== undefined) updates.lastName = lastName;
   if (email !== undefined) updates.email = email;
+  if (roleId !== undefined) updates.roleId = roleId;
 
   // Validate the merged state
   const merged = new User({ ...existing, ...updates });

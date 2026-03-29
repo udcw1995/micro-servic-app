@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback } from 'react'
+import React, { createContext, useContext, useState, useCallback, useMemo } from 'react'
 import type { User } from '@/api'
 
 interface AuthContextValue {
@@ -7,6 +7,7 @@ interface AuthContextValue {
   login: (user: User, accessToken: string, refreshToken: string) => void
   logout: () => void
   isAuthenticated: boolean
+  isAdmin: boolean
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -36,8 +37,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('refreshToken')
   }, [])
 
+  const isAdmin = useMemo(() => user?.role?.name === 'admin', [user])
+
   return (
-    <AuthContext.Provider value={{ user, accessToken, login, logout, isAuthenticated: !!user }}>
+    <AuthContext.Provider value={{ user, accessToken, login, logout, isAuthenticated: !!user, isAdmin }}>
       {children}
     </AuthContext.Provider>
   )

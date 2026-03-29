@@ -48,6 +48,8 @@ async function login({ email, password }) {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      roleId: user.roleId ?? null,
+      role: user.role ?? null,
     },
     accessToken,
     refreshToken,
