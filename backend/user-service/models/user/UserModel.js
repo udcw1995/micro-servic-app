@@ -28,6 +28,14 @@ const UserModel = sequelize.define(
         isEmail: true,
       },
     },
+    roleId: {
+      type: DataTypes.UUID,
+      allowNull: true,
+      references: {
+        model: 'roles',
+        key: 'id',
+      },
+    },
   },
   {
     tableName: 'users',

@@ -1,11 +1,13 @@
 'use strict';
 
 class User {
-  constructor({ id, firstName, lastName, email, createdAt, updatedAt } = {}) {
+  constructor({ id, firstName, lastName, email, roleId, role, createdAt, updatedAt } = {}) {
     this.id = id;
     this.firstName = firstName;
     this.lastName = lastName;
     this.email = email;
+    this.roleId = roleId;
+    this.role = role;
     this.createdAt = createdAt;
     this.updatedAt = updatedAt;
   }

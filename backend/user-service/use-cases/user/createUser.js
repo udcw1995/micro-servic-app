@@ -3,7 +3,7 @@
 const User = require('../../entities/user/User');
 const userRepository = require('../../repositories/user/UserRepository');
 
-async function createUser({ firstName, lastName, email }) {
+async function createUser({ firstName, lastName, email, roleId }) {
   const user = new User({ firstName, lastName, email });
   user.validate();
 
@@ -14,7 +14,7 @@ async function createUser({ firstName, lastName, email }) {
     throw error;
   }
 
-  return userRepository.create({ firstName, lastName, email });
+  return userRepository.create({ firstName, lastName, email, roleId });
 }
 
 module.exports = createUser;

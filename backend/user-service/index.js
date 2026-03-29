@@ -6,15 +6,21 @@ const express = require('express');
 const { sequelize } = require('./config/database');
 const { connect: connectRabbitMQ } = require('./services/rabbitmq');
 const { startListening } = require('./services/UserMessageHandler');
+const setupAssociations = require('./models/associations');
 const userRoutes = require('./routes/user/userRoutes');
+const roleRoutes = require('./routes/role/roleRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
 
 app.use(express.json());
 
+// Set up Sequelize model associations before routes are served
+setupAssociations();
+
 app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
 app.use('/api/users', userRoutes);
+app.use('/api/roles', roleRoutes);
 
 // 404 handler
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));

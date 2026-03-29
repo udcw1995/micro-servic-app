@@ -2,6 +2,7 @@
 
 const { getChannel } = require('./rabbitmq');
 const userRepository = require('../repositories/user/UserRepository');
+const roleRepository = require('../repositories/role/RoleRepository');
 
 const USER_SERVICE_QUEUE = 'user_service_rpc';
 
@@ -13,6 +14,11 @@ const handlers = {
     return userRepository.findById(id);
   },
   async CREATE(userData) {
+    // Assign the default 'user' role when registering via auth-service
+    if (!userData.roleId) {
+      const defaultRole = await roleRepository.findByName('user');
+      if (defaultRole) userData.roleId = defaultRole.id;
+    }
     return userRepository.create(userData);
   },
 };

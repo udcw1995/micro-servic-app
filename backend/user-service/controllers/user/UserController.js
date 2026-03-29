@@ -9,8 +9,8 @@ const deleteUser = require('../../use-cases/user/deleteUser');
 class UserController {
   async create(req, res) {
     try {
-      const { firstName, lastName, email } = req.body;
-      const user = await createUser({ firstName, lastName, email });
+      const { firstName, lastName, email, roleId } = req.body;
+      const user = await createUser({ firstName, lastName, email, roleId });
       return res.status(201).json(user);
     } catch (err) {
       return res.status(err.statusCode || 400).json({ error: err.message });

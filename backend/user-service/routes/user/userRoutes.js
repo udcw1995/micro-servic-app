@@ -3,11 +3,12 @@
 const { Router } = require('express');
 const userController = require('../../controllers/user/UserController');
 const authenticate = require('../../middleware/authenticate');
+const requireAdmin = require('../../middleware/requireAdmin');
 
 const router = Router();
 
-// Public
-router.post('/', (req, res) => userController.create(req, res));
+// Admin only — create user via HTTP (registration goes through auth-service → RabbitMQ)
+router.post('/', authenticate, requireAdmin, (req, res) => userController.create(req, res));
 
 // Protected — requires a valid JWT access token
 router.get('/', authenticate, (req, res) => userController.getAll(req, res));
