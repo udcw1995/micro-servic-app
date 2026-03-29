@@ -69,6 +69,10 @@ services:
       DB_PASSWORD: ${USER_DB_PASSWORD:-postgres}
       RABBITMQ_URL: amqp://rabbitmq
       JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access}
+      ADMIN_USER_ID: ${ADMIN_USER_ID:-a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}
+      ADMIN_FIRST_NAME: ${ADMIN_FIRST_NAME:-Admin}
+      ADMIN_LAST_NAME: ${ADMIN_LAST_NAME:-User}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
     depends_on:
       user-service-db:
         condition: service_healthy
@@ -98,6 +102,9 @@ services:
       JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET:-change_me_refresh}
       JWT_ACCESS_EXPIRES_IN: ${JWT_ACCESS_EXPIRES_IN:-15m}
       JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      ADMIN_USER_ID: ${ADMIN_USER_ID:-a0eebc99-9c0b-4ef8-bb6d-6bb9bd380a11}
+      ADMIN_EMAIL: ${ADMIN_EMAIL:-admin@example.com}
+      ADMIN_PASSWORD: ${ADMIN_PASSWORD:-Admin@1234}
     depends_on:
       auth-service-db:
         condition: service_healthy
