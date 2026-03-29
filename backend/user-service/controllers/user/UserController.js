@@ -37,8 +37,8 @@ class UserController {
 
   async update(req, res) {
     try {
-      const { firstName, lastName, email, roleId } = req.body;
-      const user = await updateUser(req.params.id, { firstName, lastName, email, roleId });
+      const { firstName, lastName, email, avatarUrl, roleId } = req.body;
+      const user = await updateUser(req.params.id, { firstName, lastName, email, avatarUrl, roleId });
       return res.status(200).json(user);
     } catch (err) {
       return res.status(err.statusCode || 400).json({ error: err.message });

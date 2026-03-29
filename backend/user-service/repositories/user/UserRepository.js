@@ -13,6 +13,7 @@ function toEntity(record) {
     firstName: record.firstName,
     lastName: record.lastName,
     email: record.email,
+    avatarUrl: record.avatarUrl,
     roleId: record.roleId,
     role: record.role ? { id: record.role.id, name: record.role.name } : undefined,
     createdAt: record.createdAt,

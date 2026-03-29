@@ -38,6 +38,7 @@ function createAuthenticatedApi(baseURL: string) {
 
 const userApi = createAuthenticatedApi('/api/users')
 const roleApi = createAuthenticatedApi('/api/roles')
+const uploadApi = createAuthenticatedApi('/api/uploads')
 
 export interface RegisterPayload {
   firstName: string
@@ -56,6 +57,7 @@ export interface User {
   firstName: string
   lastName: string
   email: string
+  avatarUrl?: string | null
   roleId?: string | null
   role?: { id: string; name: string } | null
 }
@@ -82,6 +84,7 @@ export interface UpdateUserPayload {
   firstName?: string
   lastName?: string
   email?: string
+  avatarUrl?: string | null
   roleId?: string | null
 }
 
@@ -109,4 +112,17 @@ export const roleService = {
   update: (id: string, payload: Partial<{ name: string; privileges: RolePrivileges }>) =>
     roleApi.put<Role>(`/${id}`, payload).then((r) => r.data),
   delete: (id: string) => roleApi.delete(`/${id}`).then((r) => r.data),
+}
+
+export const uploadService = {
+  uploadAvatar: (file: File) => {
+    const form = new FormData()
+    form.append('avatar', file)
+    return uploadApi
+      .post<{ url: string; filename: string }>('/avatar', form, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      })
+      .then((r) => r.data)
+  },
+  deleteAvatar: () => uploadApi.delete('/avatar').then((r) => r.data),
 }

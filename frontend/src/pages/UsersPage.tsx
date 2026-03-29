@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react'
-import { authService, roleService, userService, type Role, type User } from '@/api'
+import { useEffect, useRef, useState } from 'react'
+import { authService, roleService, uploadService, userService, type Role, type User } from '@/api'
 import { useToast } from '@/context/use-toast'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
@@ -8,11 +8,11 @@ import { Label } from '@/components/ui/label'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import * as Dialog from '@radix-ui/react-dialog'
-import { Pencil, Plus, Trash2, UserCircle2, X } from 'lucide-react'
+import { Camera, Pencil, Plus, Trash2, UserCircle2, X } from 'lucide-react'
 
 export default function UsersPage() {
   const { toast } = useToast()
-  const { user: me, logout, isAdmin } = useAuth()
+  const { user: me, logout, isAdmin, updateUser } = useAuth()
   const [users, setUsers] = useState<User[]>([])
   const [roles, setRoles] = useState<Role[]>([])
   const [loading, setLoading] = useState(true)
@@ -23,6 +23,8 @@ export default function UsersPage() {
   const [createOpen, setCreateOpen] = useState(false)
   const [createForm, setCreateForm] = useState({ firstName: '', lastName: '', email: '', password: '', roleId: '' })
   const [creating, setCreating] = useState(false)
+  const [uploadingAvatar, setUploadingAvatar] = useState(false)
+  const avatarInputRef = useRef<HTMLInputElement>(null)
 
   const fetchUsers = async () => {
     try {
@@ -48,6 +50,45 @@ export default function UsersPage() {
 
   const handleEditChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setEditForm((f) => ({ ...f, [e.target.name]: e.target.value }))
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !editTarget) return
+    if (avatarInputRef.current) avatarInputRef.current.value = ''
+    setUploadingAvatar(true)
+    try {
+      const { url } = await uploadService.uploadAvatar(file)
+      const updated = await userService.update(editTarget.id, { avatarUrl: url })
+      setEditTarget(updated)
+      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
+      if (me?.id === editTarget.id) updateUser({ avatarUrl: url })
+      toast({ title: 'Photo updated' })
+    } catch (err: unknown) {
+      const msg =
+        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ?? 'Upload failed'
+      toast({ variant: 'destructive', title: 'Error', description: msg })
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
+
+  const handleAvatarDelete = async () => {
+    if (!editTarget) return
+    setUploadingAvatar(true)
+    try {
+      // Only call upload-service delete when removing own avatar (JWT identifies caller)
+      if (me?.id === editTarget.id) await uploadService.deleteAvatar()
+      const updated = await userService.update(editTarget.id, { avatarUrl: null })
+      setEditTarget(updated)
+      setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))
+      if (me?.id === editTarget.id) updateUser({ avatarUrl: null })
+      toast({ title: 'Photo removed' })
+    } catch {
+      toast({ variant: 'destructive', title: 'Error', description: 'Failed to remove photo' })
+    } finally {
+      setUploadingAvatar(false)
+    }
+  }
 
   const handleCreateChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setCreateForm((f) => ({ ...f, [e.target.name]: e.target.value }))
@@ -150,9 +191,17 @@ export default function UsersPage() {
               <CardHeader className="pb-2">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
-                      {u.firstName[0]}{u.lastName[0]}
-                    </div>
+                    {u.avatarUrl ? (
+                      <img
+                        src={u.avatarUrl}
+                        alt={`${u.firstName} ${u.lastName}`}
+                        className="h-10 w-10 rounded-full object-cover shrink-0 border"
+                      />
+                    ) : (
+                      <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-sm shrink-0">
+                        {u.firstName[0]}{u.lastName[0]}
+                      </div>
+                    )}
                     <div>
                       <CardTitle className="text-base leading-tight">
                         {u.firstName} {u.lastName}
@@ -285,6 +334,63 @@ export default function UsersPage() {
                 </button>
               </Dialog.Close>
             </div>
+
+            {/* Avatar section */}
+            <div className="flex items-center gap-4 pb-2 border-b">
+              {editTarget?.avatarUrl ? (
+                <img
+                  src={editTarget.avatarUrl}
+                  alt="avatar"
+                  className="h-16 w-16 rounded-full object-cover border shrink-0"
+                />
+              ) : (
+                <div className="h-16 w-16 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xl shrink-0">
+                  {editTarget?.firstName?.[0]}{editTarget?.lastName?.[0]}
+                </div>
+              )}
+              <div className="space-y-1.5">
+                <p className="text-sm font-medium">Profile photo</p>
+                <div className="flex gap-2">
+                  <label htmlFor="edit-avatar" className="cursor-pointer">
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      disabled={uploadingAvatar}
+                      asChild
+                    >
+                      <span>
+                        <Camera className="h-3.5 w-3.5 mr-1" />
+                        {uploadingAvatar ? 'Uploading…' : 'Upload photo'}
+                      </span>
+                    </Button>
+                    <input
+                      ref={avatarInputRef}
+                      id="edit-avatar"
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      className="sr-only"
+                      onChange={handleAvatarUpload}
+                      disabled={uploadingAvatar}
+                    />
+                  </label>
+                  {editTarget?.avatarUrl && (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="ghost"
+                      className="text-destructive hover:text-destructive"
+                      disabled={uploadingAvatar}
+                      onClick={handleAvatarDelete}
+                    >
+                      Remove
+                    </Button>
+                  )}
+                </div>
+                <p className="text-xs text-muted-foreground">JPEG, PNG, GIF or WebP · max 5 MB</p>
+              </div>
+            </div>
+
             <div className="space-y-3">
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-1.5">

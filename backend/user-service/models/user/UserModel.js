@@ -28,6 +28,10 @@ const UserModel = sequelize.define(
         isEmail: true,
       },
     },
+    avatarUrl: {
+      type: DataTypes.STRING(500),
+      allowNull: true,
+    },
     roleId: {
       type: DataTypes.UUID,
       allowNull: true,

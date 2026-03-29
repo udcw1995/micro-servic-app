@@ -6,6 +6,7 @@ interface AuthContextValue {
   accessToken: string | null
   login: (user: User, accessToken: string, refreshToken: string) => void
   logout: () => void
+  updateUser: (patch: Partial<User>) => void
   isAuthenticated: boolean
   isAdmin: boolean
 }
@@ -37,10 +38,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('refreshToken')
   }, [])
 
+  const updateUser = useCallback((patch: Partial<User>) => {
+    setUser((prev) => {
+      if (!prev) return prev
+      const updated = { ...prev, ...patch }
+      localStorage.setItem('user', JSON.stringify(updated))
+      return updated
+    })
+  }, [])
+
   const isAdmin = useMemo(() => user?.role?.name === 'admin', [user])
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, login, logout, isAuthenticated: !!user, isAdmin }}>
+    <AuthContext.Provider value={{ user, accessToken, login, logout, updateUser, isAuthenticated: !!user, isAdmin }}>
       {children}
     </AuthContext.Provider>
   )

@@ -37,6 +37,17 @@ export default function AppLayout() {
             </nav>
           </div>
           <div className="flex items-center gap-3">
+            {user?.avatarUrl ? (
+              <img
+                src={user.avatarUrl}
+                alt="avatar"
+                className="h-8 w-8 rounded-full object-cover border"
+              />
+            ) : (
+              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs shrink-0">
+                {user?.firstName?.[0]}{user?.lastName?.[0]}
+              </div>
+            )}
             <span className="text-sm text-muted-foreground hidden sm:block">
               {user?.firstName} {user?.lastName}
               {user?.role && (

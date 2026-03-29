@@ -126,6 +126,25 @@ services:
     depends_on:
       - user-service
       - auth-service
+      - upload-service
+    restart: unless-stopped
+    networks:
+      - backend-net
+
+  upload-service:
+    build:
+      context: ./backend/upload-service
+      dockerfile: Dockerfile
+    container_name: upload-service
+    ports:
+      - "3002:3002"
+    environment:
+      NODE_ENV: production
+      PORT: 3002
+      UPLOADS_DIR: /app/uploads
+      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET:-change_me_access}
+    volumes:
+      - upload-data:/app/uploads
     restart: unless-stopped
     networks:
       - backend-net
@@ -135,6 +154,7 @@ services:
 volumes:
   user-db-data:
   auth-db-data:
+  upload-data:
 
 networks:
   backend-net:
