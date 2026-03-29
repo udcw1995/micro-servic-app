@@ -94,22 +94,28 @@ Project/
         │   ├── entities/             # Jest unit tests
         │   ├── middleware/
         │   └── use-cases/
-        ├── config/database.js
-        ├── entities/User.js
-        ├── models/UserModel.js
+        ├── config/
+        │   ├── database.js
+        │   └── sequelize.js
+        ├── entities/user/User.js
+        ├── models/user/UserModel.js
+        ├── repositories/user/UserRepository.js
         ├── services/
-        │   ├── UserRepository.js
         │   ├── rabbitmq.js
         │   └── UserMessageHandler.js # Listens on user_service_rpc queue
         ├── middleware/authenticate.js # JWT verification middleware
-        ├── use-cases/
+        ├── migrations/
+        │   └── 20260329000001-create-users.js
+        ├── seeders/
+        ├── use-cases/user/
         │   ├── createUser.js
         │   ├── getUserById.js
         │   ├── getAllUsers.js
         │   ├── updateUser.js
         │   └── deleteUser.js
-        ├── controllers/UserController.js
-        ├── routes/userRoutes.js
+        ├── controllers/user/UserController.js
+        ├── routes/user/userRoutes.js
+        ├── .sequelizerc
         ├── Dockerfile
         ├── .env.example
         └── index.js
@@ -413,27 +419,39 @@ Project/
     │   └── index.js
     └── user-service/
         ├── config/
-        │   └── database.js           # Sequelize connection (user_service_db)
+        │   ├── database.js           # Sequelize connection (user_service_db)
+        │   └── sequelize.js          # Sequelize CLI config
         ├── entities/
-        │   └── User.js               # Domain entity with validate()
+        │   └── user/
+        │       └── User.js           # Domain entity with validate()
         ├── models/
-        │   └── UserModel.js          # Sequelize model (users table)
+        │   └── user/
+        │       └── UserModel.js      # Sequelize model (users table)
+        ├── repositories/
+        │   └── user/
+        │       └── UserRepository.js
         ├── services/
-        │   ├── UserRepository.js
         │   ├── rabbitmq.js           # RabbitMQ connection singleton
         │   └── UserMessageHandler.js # Listens on user_service_rpc queue
         ├── middleware/
         │   └── authenticate.js       # JWT verification middleware
+        ├── migrations/
+        │   └── 20260329000001-create-users.js
+        ├── seeders/
         ├── use-cases/
-        │   ├── createUser.js
-        │   ├── getUserById.js
-        │   ├── getAllUsers.js
-        │   ├── updateUser.js
-        │   └── deleteUser.js
+        │   └── user/
+        │       ├── createUser.js
+        │       ├── getUserById.js
+        │       ├── getAllUsers.js
+        │       ├── updateUser.js
+        │       └── deleteUser.js
         ├── controllers/
-        │   └── UserController.js
+        │   └── user/
+        │       └── UserController.js
         ├── routes/
-        │   └── userRoutes.js
+        │   └── user/
+        │       └── userRoutes.js
+        ├── .sequelizerc
         ├── Dockerfile
         ├── .env.example
         └── index.js

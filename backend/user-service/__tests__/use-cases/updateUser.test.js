@@ -1,6 +1,6 @@
 'use strict';
 
-jest.mock('../../services/UserRepository', () => ({
+jest.mock('../../repositories/user/UserRepository', () => ({
   findById: jest.fn(),
   findByEmail: jest.fn(),
   update: jest.fn(),
