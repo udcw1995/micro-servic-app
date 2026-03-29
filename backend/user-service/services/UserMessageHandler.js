@@ -1,7 +1,7 @@
 'use strict';
 
 const { getChannel } = require('./rabbitmq');
-const userRepository = require('./UserRepository');
+const userRepository = require('../repositories/user/UserRepository');
 
 const USER_SERVICE_QUEUE = 'user_service_rpc';
 

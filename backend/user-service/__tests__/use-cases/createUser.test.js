@@ -9,8 +9,8 @@ jest.mock('../../services/UserRepository', () => ({
   delete: jest.fn(),
 }));
 
-const userRepository = require('../../services/UserRepository');
-const createUser = require('../../use-cases/createUser');
+const userRepository = require('../../repositories/user/UserRepository');
+const createUser = require('../../use-cases/user/createUser');
 
 describe('createUser use case', () => {
   beforeEach(() => jest.clearAllMocks());

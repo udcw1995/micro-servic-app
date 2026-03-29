@@ -4,8 +4,8 @@ jest.mock('../../services/UserRepository', () => ({
   findById: jest.fn(),
 }));
 
-const userRepository = require('../../services/UserRepository');
-const getUserById = require('../../use-cases/getUserById');
+const userRepository = require('../../repositories/user/UserRepository');
+const getUserById = require('../../use-cases/user/getUserById');
 
 describe('getUserById use case', () => {
   beforeEach(() => jest.clearAllMocks());

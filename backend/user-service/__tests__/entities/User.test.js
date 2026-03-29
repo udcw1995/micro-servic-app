@@ -1,6 +1,6 @@
 'use strict';
 
-const User = require('../../entities/User');
+const User = require('../../entities/user/User');
 
 describe('User entity', () => {
   const validData = { firstName: 'John', lastName: 'Doe', email: 'john@example.com' };

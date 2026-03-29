@@ -6,8 +6,8 @@ jest.mock('../../services/UserRepository', () => ({
   update: jest.fn(),
 }));
 
-const userRepository = require('../../services/UserRepository');
-const updateUser = require('../../use-cases/updateUser');
+const userRepository = require('../../repositories/user/UserRepository');
+const updateUser = require('../../use-cases/user/updateUser');
 
 describe('updateUser use case', () => {
   beforeEach(() => jest.clearAllMocks());

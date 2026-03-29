@@ -1,10 +1,10 @@
 'use strict';
 
-const createUser = require('../use-cases/createUser');
-const getUserById = require('../use-cases/getUserById');
-const getAllUsers = require('../use-cases/getAllUsers');
-const updateUser = require('../use-cases/updateUser');
-const deleteUser = require('../use-cases/deleteUser');
+const createUser = require('../../use-cases/user/createUser');
+const getUserById = require('../../use-cases/user/getUserById');
+const getAllUsers = require('../../use-cases/user/getAllUsers');
+const updateUser = require('../../use-cases/user/updateUser');
+const deleteUser = require('../../use-cases/user/deleteUser');
 
 class UserController {
   async create(req, res) {

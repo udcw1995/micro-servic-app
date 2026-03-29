@@ -1,6 +1,6 @@
 'use strict';
 
-const userRepository = require('../services/UserRepository');
+const userRepository = require('../../repositories/user/UserRepository');
 
 async function deleteUser(id) {
   const deleted = await userRepository.delete(id);

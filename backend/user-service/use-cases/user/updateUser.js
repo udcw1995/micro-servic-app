@@ -1,7 +1,7 @@
 'use strict';
 
-const User = require('../entities/User');
-const userRepository = require('../services/UserRepository');
+const User = require('../../entities/user/User');
+const userRepository = require('../../repositories/user/UserRepository');
 
 async function updateUser(id, { firstName, lastName, email }) {
   const existing = await userRepository.findById(id);

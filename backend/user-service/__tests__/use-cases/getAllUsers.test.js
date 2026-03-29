@@ -4,8 +4,8 @@ jest.mock('../../services/UserRepository', () => ({
   findAll: jest.fn(),
 }));
 
-const userRepository = require('../../services/UserRepository');
-const getAllUsers = require('../../use-cases/getAllUsers');
+const userRepository = require('../../repositories/user/UserRepository');
+const getAllUsers = require('../../use-cases/user/getAllUsers');
 
 describe('getAllUsers use case', () => {
   beforeEach(() => jest.clearAllMocks());

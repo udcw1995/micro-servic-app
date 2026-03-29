@@ -6,7 +6,7 @@ const express = require('express');
 const { sequelize } = require('./config/database');
 const { connect: connectRabbitMQ } = require('./services/rabbitmq');
 const { startListening } = require('./services/UserMessageHandler');
-const userRoutes = require('./routes/userRoutes');
+const userRoutes = require('./routes/user/userRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;

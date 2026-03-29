@@ -1,8 +1,8 @@
 'use strict';
 
 const { Op } = require('sequelize');
-const UserModel = require('../models/UserModel');
-const User = require('../entities/User');
+const UserModel = require('../../models/user/UserModel');
+const User = require('../../entities/user/User');
 
 function toEntity(record) {
   return new User({

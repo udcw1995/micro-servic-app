@@ -1,7 +1,7 @@
 'use strict';
 
-const User = require('../entities/User');
-const userRepository = require('../services/UserRepository');
+const User = require('../../entities/user/User');
+const userRepository = require('../../repositories/user/UserRepository');
 
 async function createUser({ firstName, lastName, email }) {
   const user = new User({ firstName, lastName, email });
