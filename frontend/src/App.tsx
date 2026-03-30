@@ -6,6 +6,8 @@ import LoginPage from '@/pages/LoginPage'
 import RegisterPage from '@/pages/RegisterPage'
 import UsersPage from '@/pages/UsersPage'
 import RolesPage from '@/pages/RolesPage'
+import TeamsPage from '@/pages/TeamsPage'
+import TeamDetailPage from '@/pages/TeamDetailPage'
 import React from 'react'
 
 function AdminGuard({ children }: { children: React.ReactNode }) {
@@ -24,6 +26,8 @@ export default function App() {
           <Route element={<AppLayout />}>
             <Route path="/users" element={<UsersPage />} />
             <Route path="/roles" element={<AdminGuard><RolesPage /></AdminGuard>} />
+            <Route path="/teams" element={<AdminGuard><TeamsPage /></AdminGuard>} />
+            <Route path="/teams/:id" element={<AdminGuard><TeamDetailPage /></AdminGuard>} />
           </Route>
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>

@@ -3,6 +3,7 @@
 const { getChannel } = require('./rabbitmq');
 const userRepository = require('../repositories/user/UserRepository');
 const roleRepository = require('../repositories/role/RoleRepository');
+const { publishUserCreated } = require('./UserEventPublisher');
 
 const USER_SERVICE_QUEUE = 'user_service_rpc';
 
@@ -13,13 +14,26 @@ const handlers = {
   async FIND_BY_ID({ id }) {
     return userRepository.findById(id);
   },
+  async GET_ALL() {
+    return userRepository.findAll();
+  },
   async CREATE(userData) {
     // Assign the default 'user' role when registering via auth-service
     if (!userData.roleId) {
       const defaultRole = await roleRepository.findByName('user');
       if (defaultRole) userData.roleId = defaultRole.id;
     }
-    return userRepository.create(userData);
+    const created = await userRepository.create(userData);
+
+    // Fetch with role populated so roleName is available in the event
+    const fullUser = await userRepository.findById(created.id);
+    try {
+      await publishUserCreated(fullUser);
+    } catch (err) {
+      console.error('Failed to publish USER_CREATED event:', err.message);
+    }
+
+    return fullUser;
   },
 };
 

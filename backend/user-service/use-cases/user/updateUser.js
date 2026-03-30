@@ -2,6 +2,7 @@
 
 const User = require('../../entities/user/User');
 const userRepository = require('../../repositories/user/UserRepository');
+const { publishUserUpdated } = require('../../services/UserEventPublisher');
 
 async function updateUser(id, { firstName, lastName, email, avatarUrl, roleId }) {
   const existing = await userRepository.findById(id);
@@ -32,7 +33,15 @@ async function updateUser(id, { firstName, lastName, email, avatarUrl, roleId })
     }
   }
 
-  return userRepository.update(id, updates);
+  const updated = await userRepository.update(id, updates);
+
+  try {
+    await publishUserUpdated(updated);
+  } catch (err) {
+    console.error('Failed to publish USER_UPDATED event:', err.message);
+  }
+
+  return updated;
 }
 
 module.exports = updateUser;

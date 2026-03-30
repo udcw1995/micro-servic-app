@@ -2,7 +2,7 @@ import { NavLink, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { LogOut, Shield, Users } from 'lucide-react'
+import { Layers, LogOut, Shield, Users } from 'lucide-react'
 
 export default function AppLayout() {
   const { isAuthenticated, user, logout, isAdmin } = useAuth()
@@ -32,6 +32,12 @@ export default function AppLayout() {
                 <NavLink to="/roles" className={navLink}>
                   <Shield className="h-4 w-4" />
                   <span className="hidden sm:inline">Roles</span>
+                </NavLink>
+              )}
+              {isAdmin && (
+                <NavLink to="/teams" className={navLink}>
+                  <Layers className="h-4 w-4" />
+                  <span className="hidden sm:inline">Teams</span>
                 </NavLink>
               )}
             </nav>

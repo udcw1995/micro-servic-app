@@ -2,6 +2,7 @@
 
 const User = require('../../entities/user/User');
 const userRepository = require('../../repositories/user/UserRepository');
+const { publishUserCreated } = require('../../services/UserEventPublisher');
 
 async function createUser({ firstName, lastName, email, roleId }) {
   const user = new User({ firstName, lastName, email });
@@ -14,7 +15,18 @@ async function createUser({ firstName, lastName, email, roleId }) {
     throw error;
   }
 
-  return userRepository.create({ firstName, lastName, email, roleId });
+  const created = await userRepository.create({ firstName, lastName, email, roleId });
+
+  // Fetch with role populated so roleName is available in the event
+  const fullUser = await userRepository.findById(created.id);
+
+  try {
+    await publishUserCreated(fullUser);
+  } catch (err) {
+    console.error('Failed to publish USER_CREATED event:', err.message);
+  }
+
+  return fullUser;
 }
 
 module.exports = createUser;

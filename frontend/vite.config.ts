@@ -15,6 +15,8 @@ export default defineConfig({
     proxy: {
       '/api/auth': 'http://localhost:3001',
       '/api/users': 'http://localhost:3000',
+      '/api/roles': 'http://localhost:3000',
+      '/api/teams': 'http://localhost:3003',
     },
   },
 })

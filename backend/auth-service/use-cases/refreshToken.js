@@ -18,8 +18,8 @@ async function refreshToken({ token }) {
     throw err;
   }
 
-  const { userId, email } = payload;
-  const accessToken = jwt.sign({ userId, email }, process.env.JWT_ACCESS_SECRET, {
+  const { userId, email, roleName } = payload;
+  const accessToken = jwt.sign({ userId, email, roleName: roleName ?? null }, process.env.JWT_ACCESS_SECRET, {
     expiresIn: process.env.JWT_ACCESS_EXPIRES_IN || '15m',
   });
 

@@ -2,6 +2,7 @@
 
 const userRepository = require('../../repositories/user/UserRepository');
 const AuthServiceClient = require('../../services/AuthServiceClient');
+const { publishUserDeleted } = require('../../services/UserEventPublisher');
 
 async function deleteUser(id) {
   const deleted = await userRepository.delete(id);
@@ -15,6 +16,12 @@ async function deleteUser(id) {
     await AuthServiceClient.notifyUserDeleted(id);
   } catch (err) {
     console.error('Failed to notify auth-service of user deletion:', err.message);
+  }
+
+  try {
+    await publishUserDeleted(id);
+  } catch (err) {
+    console.error('Failed to publish USER_DELETED event:', err.message);
   }
 
   return { message: 'User deleted successfully' };

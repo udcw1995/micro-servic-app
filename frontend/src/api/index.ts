@@ -39,6 +39,7 @@ function createAuthenticatedApi(baseURL: string) {
 const userApi = createAuthenticatedApi('/api/users')
 const roleApi = createAuthenticatedApi('/api/roles')
 const uploadApi = createAuthenticatedApi('/api/uploads')
+const teamApi = createAuthenticatedApi('/api/teams')
 
 export interface RegisterPayload {
   firstName: string
@@ -112,6 +113,26 @@ export const roleService = {
   update: (id: string, payload: Partial<{ name: string; privileges: RolePrivileges }>) =>
     roleApi.put<Role>(`/${id}`, payload).then((r) => r.data),
   delete: (id: string) => roleApi.delete(`/${id}`).then((r) => r.data),
+}
+
+export interface Team {
+  id: string
+  title: string
+  description?: string | null
+  members: string[]
+  createdAt?: string
+  updatedAt?: string
+}
+export interface AssignMemberPayload { userId: string }
+
+export const teamService = {
+  getAll:       ()                                       => teamApi.get<Team[]>('/').then(r => r.data),
+  getById:      (id: string)                             => teamApi.get<Team>(`/${id}`).then(r => r.data),
+  create:       (p: { title: string; description?: string }) => teamApi.post<Team>('/', p).then(r => r.data),
+  update:       (id: string, p: { title?: string; description?: string }) => teamApi.put<Team>(`/${id}`, p).then(r => r.data),
+  delete:       (id: string)                             => teamApi.delete(`/${id}`).then(r => r.data),
+  assignMember: (teamId: string, userId: string)         => teamApi.post(`/${teamId}/members`, { userId }).then(r => r.data),
+  removeMember: (teamId: string, userId: string)         => teamApi.delete(`/${teamId}/members/${userId}`).then(r => r.data),
 }
 
 export const uploadService = {
