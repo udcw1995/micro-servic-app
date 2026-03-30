@@ -20,9 +20,12 @@ const storage = multer.diskStorage({
   },
   filename: (req, file, cb) => {
     const ext = path.extname(file.originalname).toLowerCase() || '.jpg';
-    const filename = `avatar-${req.user.userId}${ext}`;
+    // An admin may pass ?userId=<target> to upload on behalf of another user.
+    // Fall back to the authenticated user's own ID.
+    const targetUserId = req.query.userId || req.user.userId;
+    const filename = `avatar-${targetUserId}${ext}`;
     // Remove any existing avatar (different extension) before writing the new one
-    clearExistingAvatar(req.user.userId);
+    clearExistingAvatar(targetUserId);
     cb(null, filename);
   },
 });

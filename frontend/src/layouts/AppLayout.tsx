@@ -21,7 +21,7 @@ export default function AppLayout() {
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 font-semibold text-lg">
               <Tickets className="h-5 w-5 text-primary" />
-              UserManager
+              Zeal
             </div>
             <nav className="flex items-center gap-5">
               <NavLink to="/users" className={navLink}>

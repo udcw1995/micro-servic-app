@@ -59,7 +59,7 @@ export default function UsersPage() {
     if (avatarInputRef.current) avatarInputRef.current.value = ''
     setUploadingAvatar(true)
     try {
-      const { url } = await uploadService.uploadAvatar(file)
+      const { url } = await uploadService.uploadAvatar(file, editTarget.id)
       const updated = await userService.update(editTarget.id, { avatarUrl: url })
       setEditTarget(updated)
       setUsers((prev) => prev.map((u) => (u.id === updated.id ? updated : u)))

@@ -136,11 +136,12 @@ export const teamService = {
 }
 
 export const uploadService = {
-  uploadAvatar: (file: File) => {
+  uploadAvatar: (file: File, userId?: string) => {
     const form = new FormData()
     form.append('avatar', file)
+    const url = userId ? `/avatar?userId=${encodeURIComponent(userId)}` : '/avatar'
     return uploadApi
-      .post<{ url: string; filename: string }>('/avatar', form, {
+      .post<{ url: string; filename: string }>(url, form, {
         headers: { 'Content-Type': 'multipart/form-data' },
       })
       .then((r) => r.data)
