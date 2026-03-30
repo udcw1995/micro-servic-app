@@ -24,6 +24,7 @@ export default function TeamsPage() {
   const [form, setForm] = useState(EMPTY_FORM)
   const [saving, setSaving] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [editConfirmOpen, setEditConfirmOpen] = useState(false)
 
   const fetchTeams = async () => {
     try {
@@ -230,8 +231,29 @@ export default function TeamsPage() {
               <Dialog.Close asChild>
                 <Button variant="outline" disabled={saving}>Cancel</Button>
               </Dialog.Close>
-              <Button onClick={handleEdit} disabled={saving || !form.title.trim()}>
-                {saving ? 'Saving…' : 'Save changes'}
+              <Button onClick={() => setEditConfirmOpen(true)} disabled={saving || !form.title.trim()}>
+                Save changes
+              </Button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* ── Edit Confirm Dialog ───────────────────────────────────────── */}
+      <Dialog.Root open={editConfirmOpen} onOpenChange={setEditConfirmOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-60 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-background rounded-lg border shadow-lg p-6 space-y-4">
+            <Dialog.Title className="text-lg font-semibold">Save changes?</Dialog.Title>
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to update <strong>{editTarget?.title}</strong>?
+            </p>
+            <div className="flex justify-end gap-2">
+              <Dialog.Close asChild>
+                <Button variant="outline" disabled={saving}>Cancel</Button>
+              </Dialog.Close>
+              <Button onClick={() => { setEditConfirmOpen(false); handleEdit() }} disabled={saving || !form.title.trim()}>
+                {saving ? 'Saving…' : 'Confirm'}
               </Button>
             </div>
           </Dialog.Content>

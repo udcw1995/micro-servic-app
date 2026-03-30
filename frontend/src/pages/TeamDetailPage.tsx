@@ -5,7 +5,8 @@ import { useToast } from '@/context/use-toast'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowLeft, Layers, UserMinus, UserPlus, UserCircle2 } from 'lucide-react'
+import * as Dialog from '@radix-ui/react-dialog'
+import { ArrowLeft, Layers, UserMinus, UserPlus, UserCircle2, X } from 'lucide-react'
 
 type ApiErr = { response?: { data?: { error?: string } } }
 
@@ -20,6 +21,7 @@ export default function TeamDetailPage() {
   const [selectedUserId, setSelectedUserId] = useState('')
   const [assigning, setAssigning] = useState(false)
   const [removingId, setRemovingId] = useState<string | null>(null)
+  const [removeTarget, setRemoveTarget] = useState<User | null>(null)
 
   useEffect(() => {
     if (!id) return
@@ -68,14 +70,15 @@ export default function TeamDetailPage() {
     }
   }
 
-  const handleRemove = async (userId: string) => {
-    if (!id) return
-    setRemovingId(userId)
+  const handleRemove = async () => {
+    if (!id || !removeTarget) return
+    setRemovingId(removeTarget.id)
     try {
-      await teamService.removeMember(id, userId)
+      await teamService.removeMember(id, removeTarget.id)
       setTeam((prev) =>
-        prev ? { ...prev, members: prev.members.filter((m) => m !== userId) } : prev
+        prev ? { ...prev, members: prev.members.filter((m) => m !== removeTarget.id) } : prev
       )
+      setRemoveTarget(null)
       toast({ title: 'Member removed' })
     } catch (err: unknown) {
       const msg = (err as ApiErr)?.response?.data?.error ?? 'Failed to remove member'
@@ -172,7 +175,7 @@ export default function TeamDetailPage() {
                       variant="ghost"
                       className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
                       disabled={removingId === user.id}
-                      onClick={() => handleRemove(user.id)}
+                      onClick={() => setRemoveTarget(user)}
                     >
                       <UserMinus className="h-4 w-4 mr-1" />
                       {removingId === user.id ? 'Removing…' : 'Remove'}
@@ -219,6 +222,32 @@ export default function TeamDetailPage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Remove Member Confirm Dialog */}
+      <Dialog.Root open={!!removeTarget} onOpenChange={(open) => { if (!open) setRemoveTarget(null) }}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-background rounded-lg border shadow-lg p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <Dialog.Title className="text-lg font-semibold">Remove member</Dialog.Title>
+              <Dialog.Close asChild>
+                <button className="text-muted-foreground hover:text-foreground"><X className="h-4 w-4" /></button>
+              </Dialog.Close>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to remove <strong>{removeTarget?.firstName} {removeTarget?.lastName}</strong> from this team?
+            </p>
+            <div className="flex justify-end gap-2">
+              <Dialog.Close asChild>
+                <Button variant="outline" disabled={!!removingId}>Cancel</Button>
+              </Dialog.Close>
+              <Button variant="destructive" disabled={!!removingId} onClick={handleRemove}>
+                {removingId ? 'Removing…' : 'Remove'}
+              </Button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
     </div>
   )
 }

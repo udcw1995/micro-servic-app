@@ -2,7 +2,7 @@ import { NavLink, Navigate, Outlet } from 'react-router-dom'
 import { useAuth } from '@/context/AuthContext'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
-import { Layers, LogOut, Shield, Users } from 'lucide-react'
+import { Layers, LogOut, Shield, Users, Tickets } from 'lucide-react'
 
 export default function AppLayout() {
   const { isAuthenticated, user, logout, isAdmin } = useAuth()
@@ -20,7 +20,7 @@ export default function AppLayout() {
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 font-semibold text-lg">
-              <Users className="h-5 w-5 text-primary" />
+              <Tickets className="h-5 w-5 text-primary" />
               UserManager
             </div>
             <nav className="flex items-center gap-5">

@@ -19,7 +19,9 @@ export default function UsersPage() {
   const [editTarget, setEditTarget] = useState<User | null>(null)
   const [editForm, setEditForm] = useState({ firstName: '', lastName: '', email: '', roleId: '' })
   const [saving, setSaving] = useState(false)
-  const [deletingId, setDeletingId] = useState<string | null>(null)
+  const [deleteTarget, setDeleteTarget] = useState<User | null>(null)
+  const [deleting, setDeleting] = useState(false)
+  const [editConfirmOpen, setEditConfirmOpen] = useState(false)
   const [createOpen, setCreateOpen] = useState(false)
   const [createForm, setCreateForm] = useState({ firstName: '', lastName: '', email: '', password: '', roleId: '' })
   const [creating, setCreating] = useState(false)
@@ -143,17 +145,19 @@ export default function UsersPage() {
     }
   }
 
-  const handleDelete = async (id: string) => {
-    setDeletingId(id)
+  const handleDelete = async () => {
+    if (!deleteTarget) return
+    setDeleting(true)
     try {
-      await userService.delete(id)
-      setUsers((prev) => prev.filter((u) => u.id !== id))
+      await userService.delete(deleteTarget.id)
+      setUsers((prev) => prev.filter((u) => u.id !== deleteTarget.id))
       toast({ title: 'User deleted' })
-      if (me?.id === id) logout()
+      if (me?.id === deleteTarget.id) logout()
+      setDeleteTarget(null)
     } catch {
       toast({ variant: 'destructive', title: 'Error', description: 'Delete failed' })
     } finally {
-      setDeletingId(null)
+      setDeleting(false)
     }
   }
 
@@ -228,11 +232,10 @@ export default function UsersPage() {
                     size="sm"
                     variant="destructive"
                     className="flex-1"
-                    disabled={deletingId === u.id}
-                    onClick={() => handleDelete(u.id)}
+                    onClick={() => setDeleteTarget(u)}
                   >
                     <Trash2 className="h-3.5 w-3.5 mr-1" />
-                    {deletingId === u.id ? 'Deleting…' : 'Delete'}
+                    Delete
                   </Button>
                 </CardContent>
               )}
@@ -442,8 +445,50 @@ export default function UsersPage() {
               <Dialog.Close asChild>
                 <Button variant="outline" className="flex-1">Cancel</Button>
               </Dialog.Close>
-              <Button className="flex-1" disabled={saving} onClick={handleEditSave}>
-                {saving ? 'Saving…' : 'Save changes'}
+              <Button className="flex-1" disabled={saving} onClick={() => setEditConfirmOpen(true)}>
+                Save changes
+              </Button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Delete User Confirm Dialog */}
+      <Dialog.Root open={!!deleteTarget} onOpenChange={(open) => { if (!open) setDeleteTarget(null) }}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-40" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-background rounded-lg border shadow-lg p-6 space-y-4">
+            <Dialog.Title className="text-lg font-semibold">Delete user</Dialog.Title>
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to delete <strong>{deleteTarget?.firstName} {deleteTarget?.lastName}</strong>? This action cannot be undone.
+            </p>
+            <div className="flex gap-3">
+              <Dialog.Close asChild>
+                <Button variant="outline" className="flex-1" disabled={deleting}>Cancel</Button>
+              </Dialog.Close>
+              <Button variant="destructive" className="flex-1" disabled={deleting} onClick={handleDelete}>
+                {deleting ? 'Deleting…' : 'Delete'}
+              </Button>
+            </div>
+          </Dialog.Content>
+        </Dialog.Portal>
+      </Dialog.Root>
+
+      {/* Edit User Confirm Dialog */}
+      <Dialog.Root open={editConfirmOpen} onOpenChange={setEditConfirmOpen}>
+        <Dialog.Portal>
+          <Dialog.Overlay className="fixed inset-0 bg-black/40 backdrop-blur-sm z-50" />
+          <Dialog.Content className="fixed left-1/2 top-1/2 z-60 -translate-x-1/2 -translate-y-1/2 w-full max-w-sm bg-background rounded-lg border shadow-lg p-6 space-y-4">
+            <Dialog.Title className="text-lg font-semibold">Save changes?</Dialog.Title>
+            <p className="text-sm text-muted-foreground">
+              Are you sure you want to update <strong>{editTarget?.firstName} {editTarget?.lastName}</strong>?
+            </p>
+            <div className="flex gap-3">
+              <Dialog.Close asChild>
+                <Button variant="outline" className="flex-1" disabled={saving}>Cancel</Button>
+              </Dialog.Close>
+              <Button className="flex-1" disabled={saving} onClick={() => { setEditConfirmOpen(false); handleEditSave() }}>
+                {saving ? 'Saving…' : 'Confirm'}
               </Button>
             </div>
           </Dialog.Content>
