@@ -17,6 +17,7 @@ export default defineConfig({
       '/api/users': 'http://localhost:3000',
       '/api/roles': 'http://localhost:3000',
       '/api/teams': 'http://localhost:3003',
+      '/api/instances': 'http://localhost:3003',
     },
   },
 })

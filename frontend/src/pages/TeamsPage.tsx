@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { teamService, type Team } from '@/api'
+import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/use-toast'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -16,6 +17,8 @@ const EMPTY_FORM = { title: '', description: '' }
 export default function TeamsPage() {
   const { toast } = useToast()
   const navigate = useNavigate()
+  const { hasPrivilege } = useAuth()
+  const canManageTeams = hasPrivilege('canManageTeams')
   const [teams, setTeams] = useState<Team[]>([])
   const [loading, setLoading] = useState(true)
   const [createOpen, setCreateOpen] = useState(false)
@@ -132,9 +135,11 @@ export default function TeamsPage() {
             {teams.length} {teams.length === 1 ? 'team' : 'teams'}
           </p>
         </div>
-        <Button onClick={openCreate}>
-          <Plus className="h-4 w-4 mr-1" /> New team
-        </Button>
+        {canManageTeams && (
+          <Button onClick={openCreate}>
+            <Plus className="h-4 w-4 mr-1" /> New team
+          </Button>
+        )}
       </div>
 
       {/* Grid */}
@@ -147,7 +152,7 @@ export default function TeamsPage() {
       ) : teams.length === 0 ? (
         <div className="text-center py-20 text-muted-foreground">
           <Layers className="mx-auto h-12 w-12 mb-3 opacity-40" />
-          <p>No teams yet. Create one to get started.</p>
+          <p>{canManageTeams ? 'No teams yet. Create one to get started.' : 'You are not a member of any team yet.'}</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -176,14 +181,18 @@ export default function TeamsPage() {
                     className="flex-1"
                     onClick={() => navigate(`/teams/${team.id}`)}
                   >
-                    <Users className="h-3.5 w-3.5 mr-1" /> Manage
+                    <Users className="h-3.5 w-3.5 mr-1" /> {canManageTeams ? 'Manage' : 'View'}
                   </Button>
-                  <Button size="sm" variant="outline" onClick={() => openEdit(team)}>
-                    <Pencil className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button size="sm" variant="destructive" onClick={() => setDeleteTarget(team)}>
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </Button>
+                  {canManageTeams && (
+                    <>
+                      <Button size="sm" variant="outline" onClick={() => openEdit(team)}>
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button size="sm" variant="destructive" onClick={() => setDeleteTarget(team)}>
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </>
+                  )}
                 </div>
               </CardContent>
             </Card>

@@ -5,7 +5,7 @@ const UserModel = require('../../models/user/UserModel');
 const RoleModel = require('../../models/role/RoleModel');
 const User = require('../../entities/user/User');
 
-const ROLE_INCLUDE = [{ model: RoleModel, as: 'role', attributes: ['id', 'name'] }];
+const ROLE_INCLUDE = [{ model: RoleModel, as: 'role', attributes: ['id', 'name', 'privileges'] }];
 
 function toEntity(record) {
   return new User({
@@ -15,7 +15,7 @@ function toEntity(record) {
     email: record.email,
     avatarUrl: record.avatarUrl,
     roleId: record.roleId,
-    role: record.role ? { id: record.role.id, name: record.role.name } : undefined,
+    role: record.role ? { id: record.role.id, name: record.role.name, privileges: record.role.privileges ?? {} } : undefined,
     createdAt: record.createdAt,
     updatedAt: record.updatedAt,
   });

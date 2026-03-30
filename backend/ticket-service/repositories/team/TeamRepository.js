@@ -1,5 +1,6 @@
 'use strict';
 
+const { Op } = require('sequelize');
 const TeamModel = require('../../models/team/TeamModel');
 const TeamMemberModel = require('../../models/teamMember/TeamMemberModel');
 const Team = require('../../entities/team/Team');
@@ -31,6 +32,17 @@ class TeamRepository {
 
   async findAll() {
     const records = await TeamModel.findAll({ include: MEMBERS_INCLUDE });
+    return records.map(toEntity);
+  }
+
+  async findAllByMember(userId) {
+    const memberships = await TeamMemberModel.findAll({ where: { userId } });
+    const teamIds = memberships.map((m) => m.teamId);
+    if (teamIds.length === 0) return [];
+    const records = await TeamModel.findAll({
+      where: { id: { [Op.in]: teamIds } },
+      include: MEMBERS_INCLUDE,
+    });
     return records.map(toEntity);
   }
 

@@ -7,6 +7,8 @@ const adminPrivileges = {
   canDeleteUser: true,
   canManageRoles: true,
   canEditAnyUser: true,
+  canManageTeams: true,
+  canManageInstances: true,
 };
 
 const developerPrivileges = {
@@ -14,6 +16,8 @@ const developerPrivileges = {
   canDeleteUser: false,
   canManageRoles: false,
   canEditAnyUser: false,
+  canManageTeams: false,
+  canManageInstances: false,
 };
 
 const userPrivileges = {
@@ -21,6 +25,8 @@ const userPrivileges = {
   canDeleteUser: false,
   canManageRoles: false,
   canEditAnyUser: false,
+  canManageTeams: false,
+  canManageInstances: false,
 };
 
 /** @type {import('sequelize-cli').Migration} */

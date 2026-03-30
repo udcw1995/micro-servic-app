@@ -10,6 +10,7 @@ const { getAllFromUserService } = require('./services/UserServiceClient');
 const userRepository = require('./repositories/user/UserRepository');
 const setupAssociations = require('./models/associations');
 const teamRoutes = require('./routes/team/teamRoutes');
+const instanceRoutes = require('./routes/instance/instanceRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 3003;
@@ -21,6 +22,7 @@ setupAssociations();
 
 app.get('/health', (_req, res) => res.status(200).json({ status: 'ok' }));
 app.use('/api/teams', teamRoutes);
+app.use('/api/instances', instanceRoutes);
 
 // 404 handler
 app.use((_req, res) => res.status(404).json({ error: 'Route not found' }));

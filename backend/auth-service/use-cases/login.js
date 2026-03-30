@@ -39,7 +39,7 @@ async function login({ email, password }) {
   // Fetch full user profile from user-service via RabbitMQ
   const user = await UserServiceClient.findById(credential.userId);
 
-  const payload = { userId: user.id, email: user.email, roleName: user.role?.name ?? null };
+  const payload = { userId: user.id, email: user.email, roleName: user.role?.name ?? null, privileges: user.role?.privileges ?? {} };
   const { accessToken, refreshToken } = generateTokens(payload);
 
   return {

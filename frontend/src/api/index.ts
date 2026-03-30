@@ -40,6 +40,7 @@ const userApi = createAuthenticatedApi('/api/users')
 const roleApi = createAuthenticatedApi('/api/roles')
 const uploadApi = createAuthenticatedApi('/api/uploads')
 const teamApi = createAuthenticatedApi('/api/teams')
+const instanceApi = createAuthenticatedApi('/api/instances')
 
 export interface RegisterPayload {
   firstName: string
@@ -60,7 +61,7 @@ export interface User {
   email: string
   avatarUrl?: string | null
   roleId?: string | null
-  role?: { id: string; name: string } | null
+  role?: { id: string; name: string; privileges?: Record<string, boolean> } | null
 }
 
 export interface AuthResponse {
@@ -135,8 +136,7 @@ export const teamService = {
   removeMember: (teamId: string, userId: string)         => teamApi.delete(`/${teamId}/members/${userId}`).then(r => r.data),
 }
 
-export const uploadService = {
-  uploadAvatar: (file: File, userId?: string) => {
+export const uploadService = {  uploadAvatar: (file: File, userId?: string) => {
     const form = new FormData()
     form.append('avatar', file)
     const url = userId ? `/avatar?userId=${encodeURIComponent(userId)}` : '/avatar'
@@ -147,4 +147,40 @@ export const uploadService = {
       .then((r) => r.data)
   },
   deleteAvatar: () => uploadApi.delete('/avatar').then((r) => r.data),
+}
+
+export interface Instance {
+  id: string
+  teamId: string
+  name: string
+  url: string
+  appName: string
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface CreateInstancePayload {
+  teamId: string
+  name: string
+  url: string
+  appName: string
+}
+
+export interface UpdateInstancePayload {
+  name?: string
+  url?: string
+  appName?: string
+}
+
+export const instanceService = {
+  getAllByTeam: (teamId: string) =>
+    instanceApi.get<Instance[]>(`/team/${teamId}`).then((r) => r.data),
+  getById: (id: string) =>
+    instanceApi.get<Instance>(`/${id}`).then((r) => r.data),
+  create: (payload: CreateInstancePayload) =>
+    instanceApi.post<Instance>('/', payload).then((r) => r.data),
+  update: (id: string, payload: UpdateInstancePayload) =>
+    instanceApi.put<Instance>(`/${id}`, payload).then((r) => r.data),
+  delete: (id: string) =>
+    instanceApi.delete(`/${id}`).then((r) => r.data),
 }

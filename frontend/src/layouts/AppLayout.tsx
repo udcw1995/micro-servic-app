@@ -34,12 +34,10 @@ export default function AppLayout() {
                   <span className="hidden sm:inline">Roles</span>
                 </NavLink>
               )}
-              {isAdmin && (
-                <NavLink to="/teams" className={navLink}>
-                  <Layers className="h-4 w-4" />
-                  <span className="hidden sm:inline">Teams</span>
-                </NavLink>
-              )}
+              <NavLink to="/teams" className={navLink}>
+                <Layers className="h-4 w-4" />
+                <span className="hidden sm:inline">Teams</span>
+              </NavLink>
             </nav>
           </div>
           <div className="flex items-center gap-3">

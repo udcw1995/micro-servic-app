@@ -9,6 +9,8 @@ interface AuthContextValue {
   updateUser: (patch: Partial<User>) => void
   isAuthenticated: boolean
   isAdmin: boolean
+  privileges: Record<string, boolean>
+  hasPrivilege: (key: string) => boolean
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
@@ -48,9 +50,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const isAdmin = useMemo(() => user?.role?.name === 'admin', [user])
+  const privileges = useMemo<Record<string, boolean>>(() => user?.role?.privileges ?? {}, [user])
+  const hasPrivilege = useCallback((key: string) => !!privileges[key], [privileges])
 
   return (
-    <AuthContext.Provider value={{ user, accessToken, login, logout, updateUser, isAuthenticated: !!user, isAdmin }}>
+    <AuthContext.Provider value={{ user, accessToken, login, logout, updateUser, isAuthenticated: !!user, isAdmin, privileges, hasPrivilege }}>
       {children}
     </AuthContext.Provider>
   )

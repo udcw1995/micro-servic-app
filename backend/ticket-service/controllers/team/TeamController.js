@@ -21,7 +21,7 @@ class TeamController {
 
   async getById(req, res) {
     try {
-      const team = await getTeamById(req.params.id);
+      const team = await getTeamById(req.params.id, req.user);
       return res.status(200).json(team);
     } catch (err) {
       return res.status(err.statusCode || 500).json({ error: err.message });
@@ -30,7 +30,7 @@ class TeamController {
 
   async getAll(req, res) {
     try {
-      const teams = await getAllTeams();
+      const teams = await getAllTeams(req.user);
       return res.status(200).json(teams);
     } catch (err) {
       return res.status(500).json({ error: err.message });

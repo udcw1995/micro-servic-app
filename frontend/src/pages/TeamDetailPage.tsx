@@ -1,12 +1,13 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useParams, useNavigate } from 'react-router-dom'
 import { teamService, userService, type Team, type User } from '@/api'
+import { useAuth } from '@/context/AuthContext'
 import { useToast } from '@/context/use-toast'
 import { Button } from '@/components/ui/button'
 import { Select } from '@/components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import * as Dialog from '@radix-ui/react-dialog'
-import { ArrowLeft, Layers, UserMinus, UserPlus, UserCircle2, X } from 'lucide-react'
+import { ArrowLeft, Layers, UserMinus, UserPlus, UserCircle2, X, Server } from 'lucide-react'
 
 type ApiErr = { response?: { data?: { error?: string } } }
 
@@ -14,6 +15,8 @@ export default function TeamDetailPage() {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const { toast } = useToast()
+  const { hasPrivilege } = useAuth()
+  const canManageTeams = hasPrivilege('canManageTeams')
 
   const [team, setTeam] = useState<Team | null>(null)
   const [allUsers, setAllUsers] = useState<User[]>([])
@@ -26,7 +29,8 @@ export default function TeamDetailPage() {
   useEffect(() => {
     if (!id) return
     setLoading(true)
-    Promise.all([teamService.getById(id), userService.getAll()])
+    const fetchUsers = canManageTeams ? userService.getAll() : Promise.resolve([] as User[])
+    Promise.all([teamService.getById(id), fetchUsers])
       .then(([t, users]) => {
         setTeam(t)
         setAllUsers(users)
@@ -125,6 +129,13 @@ export default function TeamDetailPage() {
         </div>
       </div>
 
+      <div className="flex">
+        <Button variant="outline" size="sm" onClick={() => navigate(`/teams/${id}/instances`)}>
+          <Server className="h-4 w-4 mr-1.5" />
+          Instances
+        </Button>
+      </div>
+
       <div className="grid gap-6 lg:grid-cols-2">
         {/* ── Members ──────────────────────────────────────────── */}
         <Card>
@@ -170,16 +181,18 @@ export default function TeamDetailPage() {
                         </span>
                       )}
                     </div>
-                    <Button
-                      size="sm"
-                      variant="ghost"
-                      className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
-                      disabled={removingId === user.id}
-                      onClick={() => setRemoveTarget(user)}
-                    >
-                      <UserMinus className="h-4 w-4 mr-1" />
-                      {removingId === user.id ? 'Removing…' : 'Remove'}
-                    </Button>
+                    {canManageTeams && (
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        className="text-destructive hover:text-destructive hover:bg-destructive/10 shrink-0"
+                        disabled={removingId === user.id}
+                        onClick={() => setRemoveTarget(user)}
+                      >
+                        <UserMinus className="h-4 w-4 mr-1" />
+                        {removingId === user.id ? 'Removing…' : 'Remove'}
+                      </Button>
+                    )}
                   </li>
                 ))}
               </ul>
@@ -188,39 +201,41 @@ export default function TeamDetailPage() {
         </Card>
 
         {/* ── Assign Member ─────────────────────────────────────── */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Assign member</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {assignableUsers.length === 0 ? (
-              <p className="text-sm text-muted-foreground">All users are already in this team.</p>
-            ) : (
-              <>
-                <Select
-                  value={selectedUserId}
-                  onChange={(e) => setSelectedUserId(e.target.value)}
-                >
-                  <option value="">Select a user…</option>
-                  {assignableUsers.map((u) => (
-                    <option key={u.id} value={u.id}>
-                      {u.firstName} {u.lastName}
-                      {u.role ? ` (${u.role.name})` : ''}
-                    </option>
-                  ))}
-                </Select>
-                <Button
-                  className="w-full"
-                  disabled={!selectedUserId || assigning}
-                  onClick={handleAssign}
-                >
-                  <UserPlus className="h-4 w-4 mr-1.5" />
-                  {assigning ? 'Assigning…' : 'Assign to team'}
-                </Button>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        {canManageTeams && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-base">Assign member</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {assignableUsers.length === 0 ? (
+                <p className="text-sm text-muted-foreground">All users are already in this team.</p>
+              ) : (
+                <>
+                  <Select
+                    value={selectedUserId}
+                    onChange={(e) => setSelectedUserId(e.target.value)}
+                  >
+                    <option value="">Select a user…</option>
+                    {assignableUsers.map((u) => (
+                      <option key={u.id} value={u.id}>
+                        {u.firstName} {u.lastName}
+                        {u.role ? ` (${u.role.name})` : ''}
+                      </option>
+                    ))}
+                  </Select>
+                  <Button
+                    className="w-full"
+                    disabled={!selectedUserId || assigning}
+                    onClick={handleAssign}
+                  >
+                    <UserPlus className="h-4 w-4 mr-1.5" />
+                    {assigning ? 'Assigning…' : 'Assign to team'}
+                  </Button>
+                </>
+              )}
+            </CardContent>
+          </Card>
+        )}
       </div>
 
       {/* Remove Member Confirm Dialog */}
